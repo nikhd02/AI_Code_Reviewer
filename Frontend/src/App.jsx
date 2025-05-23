@@ -19,7 +19,7 @@ import Reviews from './components/Reviews';
 import CodeReviewer from './components/CodeReviewer';
 
 // API base URL
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://ai-code-reviewer-two-sandy.vercel.app/';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
