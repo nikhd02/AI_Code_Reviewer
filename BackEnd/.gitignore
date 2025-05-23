@@ -9,9 +9,9 @@ node_modules
 # pnpm-debug.log*
 # lerna-debug.log*
 # Local env files
-.env
-.env.local
-.env.*.local
+# .env
+# .env.local
+# .env.*.local
 # Mac System files
 # .DS_Store
 # Windows System files
