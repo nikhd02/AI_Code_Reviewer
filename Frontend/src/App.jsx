@@ -19,7 +19,7 @@ import Reviews from './components/Reviews';
 import CodeReviewer from './components/CodeReviewer';
 
 // API base URL
-const API_BASE_URL = 'https://ai-code-reviewer-two-sandy.vercel.app/';
+const API_BASE_URL = 'https://vercel.com/adarsh-dubeys-projects-49f9603a/ai-code-reviewer-mw13/46pXTRwp8cP5ifAuDsZPryzDJuDg';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
