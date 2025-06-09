@@ -9,7 +9,8 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    currentPassword: ''
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [error, setError] = useState('');
@@ -31,7 +32,8 @@ const Profile = () => {
       setFormData({
         name: response.data.name,
         email: response.data.email,
-        password: ''
+        password: '',
+        currentPassword: ''
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -60,12 +62,18 @@ const Profile = () => {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
       
       // Update profile information
       const updates = { ...formData };
-      if (!updates.password) delete updates.password;
+      if (!updates.password) {
+        delete updates.password;
+        delete updates.currentPassword;
+      }
 
-      await axios.patch('http://localhost:3000/api/profile', updates, {
+      const profileResponse = await axios.patch('http://localhost:3000/api/profile', updates, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -84,10 +92,10 @@ const Profile = () => {
 
       setSuccess('Profile updated successfully');
       setIsEditing(false);
-      fetchUserProfile();
+      await fetchUserProfile(); // Refresh user data
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError('Failed to update profile');
+      setError(error.response?.data?.error || error.message || 'Failed to update profile');
     } finally {
       setUploading(false);
     }
@@ -98,97 +106,110 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        <div className="profile-picture">
-          <img 
-            src={user.profilePicture ? `http://localhost:3000${user.profilePicture}` : '/default-profile.svg'} 
-            alt="Profile" 
-            className="profile-image"
-          />
-          {isEditing && (
-            <div className="profile-picture-upload">
-              <label htmlFor="profile-picture-input" className="upload-button">
-                Change Picture
-              </label>
-              <input 
-                id="profile-picture-input" 
-                type="file" 
-                accept="image/*" 
-                onChange={handleProfilePictureChange} 
-                style={{ display: 'none' }} 
-              />
+    <div className='profile_page'>
+      <div className="profile-container">
+        <div className="profile-header">
+          <div className="profile-picture">
+            <img 
+              src={user.profilePicture ? `http://localhost:3000${user.profilePicture}` : '/default-profile.svg'} 
+              alt="Profile" 
+              className="profile-image"
+            />
+            {isEditing && (
+              <div className="profile-picture-upload">
+                <label htmlFor="profile-picture-input" className="upload-button">
+                  Change Picture
+                </label>
+                <input 
+                  id="profile-picture-input" 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleProfilePictureChange} 
+                  style={{ display: 'none' }} 
+                />
+              </div>
+            )}
+          </div>
+          <h2>{user.name}</h2>
+          <p>{user.email}</p>
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+        {success && <div className="success-message">{success}</div>}
+
+        <div className="profile-content">
+          {isEditing ? (
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="currentPassword">Current Password (required for password change)</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  name="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleInputChange}
+                  className="form-control"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password">New Password (leave blank to keep current)</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="form-control"
+                />
+              </div>
+              <div className="button-group">
+                <button type="submit" className="btn btn-primary" disabled={uploading}>
+                  {uploading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="profile-actions">
+              <button 
+                className="btn btn-primary" 
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Profile
+              </button>
             </div>
           )}
         </div>
-        <h2>{user.name}</h2>
-        <p>{user.email}</p>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
-
-      <div className="profile-content">
-        {isEditing ? (
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="name">Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="form-control"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="form-control"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">New Password (leave blank to keep current)</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="form-control"
-              />
-            </div>
-            <div className="button-group">
-              <button type="submit" className="btn btn-primary" disabled={uploading}>
-                {uploading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                onClick={() => setIsEditing(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="profile-actions">
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setIsEditing(true)}
-            >
-              Edit Profile
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

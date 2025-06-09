@@ -76,8 +76,8 @@ html, body, #root {
   height: 100%;
   width: 100%;
   font-family: 'Fira Code', monospace;
-  background-color: #1e1e1e;
-  color: #ffffff;
+  background-color: transparent;
+  color: black;
 }
 
 .app-container {
@@ -157,7 +157,7 @@ main .right {
   position: relative;
   width: 100%;
   height: calc(100vh - 60px);
-  background: url('/images/background.jpg') no-repeat center center/cover;
+  background: url('/images/background.jpg') no-repeat center/cover;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -297,8 +297,8 @@ body {
 
 /* Navigation */
 .navbar {
-  background-color: #2c3e50;
-  padding: 0.5rem 1rem;
+  background-color: #3498db;
+  padding: 0.7rem 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -376,19 +376,22 @@ body {
 /* Login and Signup */
 .login-container,
 .signup-container {
+  background-image: url('/images/background.jpg');
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 96vw; /* Full viewport width */
   min-height: calc(100vh - 60px);
-  padding: 20px;
+  padding: 30px;
 }
 
 .login-form,
 .signup-form {
-  background: white;
+  background: transparent;
+  opacity: 99%;
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 400px;
 }
@@ -397,7 +400,7 @@ body {
 .signup-form h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #2c3e50;
+  color: #1879db;
 }
 
 .form-group {
@@ -410,12 +413,22 @@ body {
   font-weight: 500;
 }
 
+
 .form-control {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  background-color: #f0f8ff; /* Light blue background */
+  color: #2c3e50; /* Dark text color */
+  border: 2px solid #3498db;
   border-radius: 4px;
   font-size: 16px;
+}
+
+.form-control:focus {
+  background-color: #e6f7ff; /* Slightly darker blue on focus */
+  border-color: #2980b9; /* Darker blue border on focus */
+  outline: none; /* Remove default outline */
+  box-shadow: 0 0 5px rgba(41, 128, 185, 0.5); /* Add a subtle shadow */
 }
 
 .btn {
@@ -476,6 +489,7 @@ body {
   margin: 10px 0;
   font-weight: bold;
 }
+
 
 /* Code Reviewer */
 main {
@@ -583,7 +597,7 @@ main {
   overflow: hidden;
   width: 40px;
   height: 40px;
-  border: 2px solid #fff;
+  border: 2px solid #4c4ce3;
   transition: transform 0.2s;
 }
 
@@ -594,6 +608,7 @@ main {
 .profile-picture {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -629,4 +644,25 @@ main {
 
 .dropdown-item:hover {
   background-color: #f5f5f5;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #dc3545;
+  border-radius: 5px;
+  background-color: #f8d7da;
 }

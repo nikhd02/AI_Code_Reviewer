@@ -108,6 +108,11 @@ userSchema.statics.findByCredentials = async (email, password) => {
   return user;
 };
 
+// Compare password
+userSchema.methods.comparePassword = async function(password) {
+  return bcrypt.compare(password, this.password);
+};
+
 // Remove sensitive data when converting to JSON
 userSchema.methods.toJSON = function() {
   const user = this;

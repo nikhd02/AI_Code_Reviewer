@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import '../styles/Navigation.css';
 
 const Navigation = ({ isAuthenticated, user, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -26,56 +28,50 @@ const Navigation = ({ isAuthenticated, user, onLogout }) => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div className="container-fluid">
-        <Link className="navbar-brand" to="/">Code Reviewer</Link>
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto">
-            {isAuthenticated ? (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/review">Code Review</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/snippets">Code Snippets</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/reviews">My Reviews</Link>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/login">Login</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/signup">Sign Up</Link>
-                </li>
-              </>
-            )}
-          </ul>
-          
-          {isAuthenticated && (
-            <div className="profile-dropdown" ref={dropdownRef}>
-              <div className="profile-picture-container" onClick={toggleDropdown}>
-                <img 
-                  src={user?.profilePicture ? `http://localhost:3000${user.profilePicture}` : '/default-profile.svg'} 
-                  alt="Profile" 
-                  className="profile-picture"
-                />
-              </div>
-              {dropdownOpen && (
-                <div className="dropdown-menu show">
-                  <Link className="dropdown-item" to="/profile">Profile</Link>
-                  <button className="dropdown-item" onClick={onLogout}>Logout</button>
-                </div>
-              )}
+    <nav className="navbar">
+      <div className="nav-brand">
+        <Link to="/">Code Reviewer</Link>
+      </div>
+
+      <button 
+        className="mobile-menu-btn"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        {isMenuOpen ? '✕' : '☰'}
+      </button>
+
+      <div className={`nav-links ${isMenuOpen ? 'active' : ''}`}>
+        {isAuthenticated ? (
+          <>
+            <Link to="/review">Code Review</Link>
+            <Link to="/snippets">Code Snippets</Link>
+            <Link to="/reviews">My Reviews</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/signup">Sign Up</Link>
+          </>
+        )}
+        
+        {isAuthenticated && (
+          <div className="profile-dropdown" ref={dropdownRef}>
+            <div className="profile-picture-container" onClick={toggleDropdown}>
+              <img 
+                src={user?.profilePicture ? `http://localhost:3000${user.profilePicture}` : '/default-profile.svg'} 
+                alt="Profile" 
+                className="nav-profile-image"
+              />
             </div>
-          )}
-        </div>
+            {dropdownOpen && (
+              <div className="dropdown-menu show">
+                <Link to="/profile">Profile</Link>
+                <button onClick={onLogout} className="logout-btn">Logout</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );

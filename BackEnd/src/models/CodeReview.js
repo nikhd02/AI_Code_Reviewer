@@ -19,6 +19,17 @@ const codeReviewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  score: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100
+  },
+  grade: {
+    type: String,
+    required: true,
+    enum: ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'F']
+  },
   metrics: {
     complexity: Number,
     maintainability: Number,

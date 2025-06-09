@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from "react-router-dom";
 import "prismjs/themes/prism-tomorrow.css";
 import Editor from "react-simple-code-editor";
 import prism from "prismjs";
@@ -17,17 +17,18 @@ import Profile from './components/Profile';
 import CodeSnippets from './components/CodeSnippets';
 import Reviews from './components/Reviews';
 import CodeReviewer from './components/CodeReviewer';
+import LoadingSpinner from './components/LoadingSpinner';
 
-// API base URL
-const API_BASE_URL = 'https://ai-code-reviewer-ak33-git-main-adarsh-dubeys-projects-49f9603a.vercel.app/';
+// API base URL from environment variable
+const API_BASE_URL = 'https://ai-code-reviewer-ak33-git-main-adarsh-dubeys-projects-49f9603a.vercel.app/' || 'http://localhost:3000/api';
 
 // Protected Route component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
-  return children;
+  return <Outlet />;
 };
 
 function LandingPage() {
@@ -61,6 +62,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -70,13 +72,16 @@ function App() {
           const response = await axios.get(`${API_BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          console.log('User data:', response.data); // Debug log
           setUser(response.data);
           setIsAuthenticated(true);
         } catch (error) {
-          console.error('Error fetching user data:', error);
-          localStorage.removeItem('token');
-          setIsAuthenticated(false);
+          if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            setIsAuthenticated(false);
+            setError('Session expired. Please login again.');
+          } else {
+            setError('Error fetching user data. Please try again later.');
+          }
         }
       }
       setLoading(false);
@@ -94,7 +99,7 @@ function App() {
         });
       }
     } catch (error) {
-      console.error('Error during logout:', error);
+      setError('Error during logout. Please try again.');
     } finally {
       localStorage.removeItem('token');
       setIsAuthenticated(false);
@@ -103,7 +108,16 @@ function App() {
   };
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p className="error-message">{error}</p>
+        <button onClick={() => setError(null)} className="btn btn-primary">Dismiss</button>
+      </div>
+    );
   }
 
   return (
@@ -113,26 +127,23 @@ function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={!isAuthenticated ? <Login setIsAuthenticated={setIsAuthenticated} setUser={setUser} /> : <Navigate to="/" />} />
-            <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/" />} />
-            <Route path="/profile" element={isAuthenticated ? <Profile user={user} setUser={setUser} /> : <Navigate to="/login" />} />
-            <Route path="/snippets" element={isAuthenticated ? <CodeSnippets /> : <Navigate to="/login" />} />
             <Route 
-              path="/review" 
-              element={
-                <ProtectedRoute>
-                  <CodeReviewer />
-                </ProtectedRoute>
-              } 
+              path="/login" 
+              element={!isAuthenticated ? <Login setIsAuthenticated={setIsAuthenticated} setUser={setUser} /> : <Navigate to="/" replace />} 
             />
             <Route 
-              path="/reviews" 
-              element={
-                <ProtectedRoute>
-                  <Reviews />
-                </ProtectedRoute>
-              } 
+              path="/signup" 
+              element={!isAuthenticated ? <Signup /> : <Navigate to="/" replace />} 
             />
+            
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<Profile user={user} setUser={setUser} />} />
+              <Route path="/snippets" element={<CodeSnippets />} />
+              <Route path="/snippets/:id" element={<CodeSnippets />} />
+              <Route path="/review" element={<CodeReviewer />} />
+              <Route path="/reviews" element={<Reviews />} />
+            </Route>
           </Routes>
         </main>
       </div>

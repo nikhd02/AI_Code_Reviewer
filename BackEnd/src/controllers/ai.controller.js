@@ -1,36 +1,52 @@
 const { getAIReview } = require('../services/ai.service');
 const CodeReview = require('../models/CodeReview');
 
-async function getReview(req, res) {
+const getReview = async (req, res) => {
   try {
     const { code, language = 'javascript' } = req.body;
     
     if (!code) {
-      return res.status(400).json({ error: 'Code is required' });
+      return res.status(400).json({ error: 'Code is required.' });
     }
     
-    // Get AI review
-    const review = await getAIReview(code, language);
+    const aiResponse = await getAIReview(code, language);
     
-    // Save review to database
+    // Try to save the review to the database
     try {
-      const codeReview = new CodeReview({
+      const review = new CodeReview({
         code,
-        review,
+        review: aiResponse.review,
         language,
-        user: req.user._id
+        user: req.userId,
+        timestamp: aiResponse.timestamp,
+        score: aiResponse.score,
+        grade: aiResponse.grade
       });
-      await codeReview.save();
-    } catch (error) {
-      console.error('Error saving review:', error);
-      // Continue even if save fails
+      
+      await review.save();
+    } catch (saveError) {
+      console.error('Error saving review:', saveError);
+      // Continue execution even if save fails
     }
     
-    res.json({ review });
+    res.json({
+      success: true,
+      review: aiResponse.review,
+      score: aiResponse.score,
+      grade: aiResponse.grade,
+      timestamp: aiResponse.timestamp,
+      language: aiResponse.language
+    });
   } catch (error) {
     console.error('Error in getReview:', error);
-    res.status(500).json({ error: 'Failed to get code review' });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to generate code review',
+      details: error.message 
+    });
   }
-}
+};
 
-module.exports = { getReview };
+module.exports = {
+  getReview
+};

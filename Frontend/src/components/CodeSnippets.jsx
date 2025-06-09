@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../styles/CodeSnippets.css';
 
 const CodeSnippets = () => {
   const [snippets, setSnippets] = useState([]);
+  const [currentSnippet, setCurrentSnippet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -15,9 +16,36 @@ const CodeSnippets = () => {
     description: ''
   });
 
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    fetchSnippets();
-  }, []);
+    if (id) {
+      fetchSnippet(id);
+    } else {
+      fetchSnippets();
+    }
+  }, [id]);
+
+  const handleBack = () => {
+    setCurrentSnippet(null);
+    navigate('/snippets');
+  };
+
+  const fetchSnippet = async (snippetId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:3000/api/snippets/${snippetId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCurrentSnippet(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching snippet:', error);
+      setError('Failed to load code snippet');
+      setLoading(false);
+    }
+  };
 
   const fetchSnippets = async () => {
     try {
@@ -81,6 +109,40 @@ const CodeSnippets = () => {
 
   if (loading) {
     return <div className="loading">Loading...</div>;
+  }
+
+  if (currentSnippet) {
+    return (
+      <div className="snippets-container">
+        <div className="snippets-header">
+          <h2>{currentSnippet.title}</h2>
+          <button onClick={handleBack} className="back-btn">
+            Back to Snippets
+          </button>
+        </div>
+
+        <div className="snippet-card">
+          <div className="snippet-header">
+            <h3>{currentSnippet.title}</h3>
+            <span className="language-badge">{currentSnippet.language}</span>
+          </div>
+          <pre className="code-preview">
+            <code>{currentSnippet.code}</code>
+          </pre>
+          {currentSnippet.description && (
+            <p className="snippet-description">{currentSnippet.description}</p>
+          )}
+          <div className="snippet-actions">
+            <button
+              onClick={() => handleDelete(currentSnippet._id)}
+              className="delete-btn"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

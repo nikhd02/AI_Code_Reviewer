@@ -54,14 +54,29 @@ router.patch('/', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Handle password update separately
+    if (updates.includes('password')) {
+      const isMatch = await user.comparePassword(req.body.currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ error: 'Current password is incorrect' });
+      }
+    }
+
     updates.forEach(update => {
-      user[update] = req.body[update];
+      if (update !== 'currentPassword') {
+        user[update] = req.body[update];
+      }
     });
     
     await user.save();
     res.json(user);
   } catch (error) {
-    res.status(400).json({ error: 'Error updating profile' });
+    console.error('Profile update error:', error);
+    res.status(400).json({ error: error.message || 'Error updating profile' });
   }
 });
 
@@ -72,13 +87,18 @@ router.post('/upload-picture', auth, upload.single('profilePicture'), async (req
       return res.status(400).json({ error: 'Please upload an image' });
     }
     
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     user.profilePicture = `/uploads/profiles/${req.file.filename}`;
     await user.save();
     
     res.json({ profilePicture: user.profilePicture });
   } catch (error) {
-    res.status(500).json({ error: 'Error uploading profile picture' });
+    console.error('Profile picture upload error:', error);
+    res.status(500).json({ error: error.message || 'Error uploading profile picture' });
   }
 });
 
